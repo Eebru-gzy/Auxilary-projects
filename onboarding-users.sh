@@ -1,28 +1,32 @@
 #!/bin/bash
- 
+
 # Created by: Opeyemi Alao
-# Date      : 28/02/2021
+# Date      : 3/03/2021
 # Purpose   : Onboarding users and adding to a specific group, then creating an authorize key file for ssh remote login
 
 
 clear 
 
-
-# path to name file
-file=~/eebru/names.csv
-
-# initialize ssh default as a variable
+#ssh as a variable
 ssh=/etc/skel/.ssh
 
-# authorized key file in a variable
-key=authorized_keys
 
-# Ensure Group has been created manually, then  add and set default user password and group to new user
-group='develop'
-pass='@Dare123'
+# path to users name file
+file=~/names.csv
 
-# populate skel directory with ssh folder
-if [ -d "$ssh" ] ; 
+#Create a group
+sudo groupadd developers
+
+#The group as a variable
+group='developers'
+
+#the public key as a variable
+key='ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCzKZyicHxIkklSrNlxsJyyTrcIdBIt84Z0cQb3R4k0jH53kxkaT5hP8tfWTe62LXi7vV86fY+SX7TBNM76XGCbw/6vrMGegm6J1x2i1AiLNwq5nqTjOGn0AIwku4IlCCLAB7tdfRyVuCarmBlwny3lzRyybIUAWXR/D6vpN09MsDILbKdhay+Q/p9OUBMSLPqXdY/QIh/Oe3rVv1lwY3AohNfq7V3tO88zKswfA5iiexNiSYX1myT0OrX8cBE771j9quoNZhQgaLI1mIMtAvnHQChrn9k2nUaO/BMBCQGol5XzGv1ado7hgoVPoluIUD+FGNo/pH4zcmDLICH6drXY/C9MESnkMUPLFxBXKO/OitApY71vRao9nAhAwpVMsy6FqiOb5uawhvhoHYIHTV/f4EtagVagRMP2PxYMYR6jykIV4MPJTkCm+lGhTyMlRu+qRQjdLn8AAtHf4aEV8dIkoGh088DI7eA/4o0wz4OV4upH5ewSFS+5IHmRECEW5Nc='
+
+
+
+# populate skel directory with ssh folder and authorized_keys file
+if [ -d "$ssh" ] ;
 then
     echo
     echo "ssh folder already exist."
@@ -31,10 +35,11 @@ else
     sudo mkdir -p $ssh
     sudo bash -c "echo $key >> $ssh/authorized_keys"
     echo "$ssh directory is now created and ready for use"
-    echo 
+    echo
 fi
 
-while IFS= read user
+
+while read user
     do
         # check if user already exists
         if [ $(getent passwd $user) ] ;  
@@ -42,14 +47,11 @@ while IFS= read user
             echo " This user - $user already exists."
             echo
         else
-
-            sudo useradd -m -G $group -s /bin/bash $user
-            sudo echo -e "$pass\n$pass" | sudo passwd "${user}"
-            sudo passwd -x 3 ${user}
-            sudo chmod 600 /home/$user/.ssh
-            sudo chmod 600 /home/$user/.ssh/authorized_keys
-            sudo chown $user /home/$user/.ssh/authorized_keys
-            echo "$user created..."
+            #create user
+            sudo useradd -g $group -s /bin/bash -m -d "/home/$user" $user
+            echo
+            echo "User with username: $user created..."
             echo 
         fi
-        done < $file && echo "User creation successfully completed."
+        done < $file 
+        echo "20 users created successfully."
